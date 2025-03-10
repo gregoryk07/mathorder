@@ -1,21 +1,205 @@
-<!DOCTYPE HTML>
-<html lang="pl">
-    <head>
-        <title>
-            Zadania
-        </title>
-        <meta charset="UTF-8">
-    </head>
-    <body>
-        <input type="text" placeholder="Wklej tu listę imion" id="nameloadinpit"></input>
-        <button>Wczytaj</button>
-        <section id="namelist">
-            <button id="namelistbtn">Pokaż/Schowaj</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            display: flex;
+            flex-direction: column;
+            background-color: lightgray;
+            margin: 0;
+        }
+        input{
+            margin: 5px;
+        }
+        button{
+            margin: 5px;
+        }
+        body section{
+            flex: 1;
+            min-height: 150px;
+        }
+        #sectionone{
+            background-color: lightblue;
+        }
+        @media screen and (min-width: 800px){
+            body{
+                flex-direction: row;
+            }
+            #sectionone, #sectiontwo{
+                flex: 1;
+                height: 100dvh;
+            }
+            
+        }
+    </style>
+    <script>
+        let zadania = [];
+        let imiona = {};
+        
+        function updateNameList()
+        {
+            let rawText = document.getElementById("nametextinput").value;
+            while(rawText[rawText.length-1] == ","){
+                console.log("tutaj");
+                rawText = rawText.slice(0, -1);
+            }
+            imiona = rawText.split(",");
+            drawNameList();
+        }
+        function drawNameList(){
+            document.getElementById("namelistdiv").innerHTML = "<ol>";
+            for(let i = 0; i < imiona.length; i++){
+                document.getElementById("namelistdiv").innerHTML += "<li>"+imiona[i] + "</li>";
+            }
+            document.getElementById("namelistdiv").innerHTML += "</ol>";
+            drawZad();
+        }
+        function clearNameList(){
+            imiona = {};
+            document.getElementById("nametextinput").value = "";
+            drawNameList();
+        }
+        function toggleList(){
+            if(document.getElementById("namelistdiv").style.display == "none")
+            {
+                document.getElementById("namelistdiv").style.display = "initial";
+                document.getElementById("namelistdivtglbtn").innerHTML = "Zwiń listę";
+            }
+            else{
+                document.getElementById("namelistdiv").style.display = "none";
+                document.getElementById("namelistdivtglbtn").innerHTML = "Rozwiń listę";
+            }
+            
+        }
+        
+        function createZad(zadnr, zadpod, nr){
+            let temp = {
+                zad: zadnr,
+                zadpod: zadpod,
+                nr: nr
+            };
+            zadania.push(temp);
+            zadania = zadania.sort(
+                (p1, p2) => 
+                (p1.zad > p2.zad) ? 1 : (p1.zad < p2.zad) ? -1 : (p1.zadpod > p2.zadpod) ? 1 : (p1.zadpod < p2.zadpod) ? -1 : 0)
+            drawZad();
+        }
+        function deleteZad(zadnr, zadpod){
+            for(let i = 0; i < zadania.length; i++){
+                if(zadania[i].zadnr == zadnr, zadania[i].zadpod == zadpod){
+                    zadania.splice(i, i);
+                    break;
+                }
+            }
+        }
+        function drawZad(){
+            document.getElementById("zadanialista").innerHTML = "<ul>";
+            for(let i = 0; i < zadania.length; i++){
+                document.getElementById("zadanialista").innerHTML += "<li>Zadanie " + zadania[i].zad + (zadania[i].zadpod 
+                    ==
+                     "" ? " " : " podpunkt " + zadania[i].zadpod + " ") + "--> "
+                      + (imiona[zadania[i].nr-1] ? imiona[zadania[i].nr-1] : "numer " + zadania[i].nr) + "   <button onclick=\"removeZad(" + i + ")\">Usuń</button></li>"; 
+            }
+        }
+        function createZadGUI(){
+            createZad(
+                document.getElementById("zadnrinput").value,
+                document.getElementById("zadpodinput").value,
+                document.getElementById("zaduczennrinput").value
+            )
+            document.getElementById("zadnrinput").value = "";
+            document.getElementById("zadpodinput").value = "";
+            document.getElementById("zaduczennrinput").value = "";
+        }
+        function clearZadList(){
+            zadania = [];
+            drawZad();
+        }
+        function removeZad(index){
+            zadania.splice(index, 1);
+            drawZad();
+        }
+        function saveList(name){
+            if(name == ""){
+                alert("Wpisz nazwę listy");
+                return;
+            }
+            let text = "";
+            for(let i = 0; i < zadania.length; i++){
+                text += zadania[i].zad + "`" + zadania[i].zadpod + "`" + zadania[i].nr + ",";
+            }
+            text = text.slice(0, -1);
+            let text2 = "";
+            for(let i = 0; i < imiona.length; i++){
+                text2 += imiona[i] + ",";
+            }
+            text2 = text2.slice(0, -1);
+            let finaltext = text + ":" + text2;
+            finaltext.slice(0, -1);
+            document.cookie = name + "=" + finaltext + ";";
+            drawLists();
+        }
+        function loadList(rawText){
+            rawText = rawText.split(":");
+            zadania = []
+            if(rawText[0].length != 0)
+            for(let i = 0; i < rawText[0].split(",").length; i++){
+                let temp = rawText[0].split(",")[i].split("`");
+                createZad(temp[0], temp[1], temp[2]);
+            }
+            imiona = rawText[1].split(",");
+            if(rawText[1].length == 0){
+                imiona = [];
+            }
+            drawZad();
+            drawNameList();
+        }
+        function drawLists(){
+            let rawCookie = document.cookie;
+            let cookies = rawCookie.split(";");
+            document.getElementById("listslist").innerHTML = "";
+            if(cookies.length == 1 && cookies[0] == ""){
+                return;
+            }
+            for(let i = 0; i < cookies.length; i++){
+                let name = cookies[i].split("=")[0];
+                let value = cookies[i].split("=")[1];
+                console.log(name);
+                console.log(value);
+                document.getElementById("listslist").innerHTML += "<button onclick=\'loadList(\"" + value + "\")\'>" + name + "</button><button onclick=\'deleteList(\"" + name + "\")\'>Usuń</button><br>";
+            }
+        }
+        function deleteList(name){
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            drawLists();
+        }
+    </script>
+</head>
+<body>
+    <section id="sectionone">
+        <section id="sectiononeone">
+            <input id="nametextinput" type="text" placeholder="Wklej listę imion">
+            <button onclick="updateNameList()">Zastosuj</button><button onclick="clearNameList()">Wyczyść</button>
+            <div>
+                <button id="namelistdivtglbtn" onclick="toggleList()">Rozwiń listę</button>
+                <div id="namelistdiv" style="display: none"></div>
+            </div>
         </section>
-        <section id="main">
-            <input type="text" id="addnr" placeholder="Numer z dziennika">
-            <input id="numerzadania" type="text" placeholder="Numer zadania">
-            <input id="podpunktzadania">
+        <section id="sectiononetwo">
+            <input type="text" placeholder="Wpisz nazwę listy" id="listnameinput"><button onclick="saveList(document.getElementById('listnameinput').value)">Zapisz listę</button>
+            <div id="listslist"></div>
+            <script>
+                drawLists();
+            </script>
         </section>
-    </body>
+    </section>
+    <section id="sectiontwo">
+        <input rows="5" type="text" id="zadnrinput" placeholder="Wpisz numer zadania"><input type="text" id="zadpodinput" placeholder="Wpisz podpunkt"><input type="text" id="zaduczennrinput" placeholder="Wpisz numer z dziennika"><button onclick="createZadGUI()">Dodaj</button>
+        <br><button onclick="clearZadList()">Wyczyść zadania!</button>
+        <div id="zadanialista"></div>
+    </section>
+</body>
 </html>
