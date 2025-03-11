@@ -74,11 +74,11 @@
             drawNameList();
         }
         function drawNameList(){
-            document.getElementById("namelistdiv").innerHTML = "<ol>";
+            document.getElementById("namelistdiv").innerHTML = "<ul>";
             for(let i = 0; i < imiona.length; i++){
                 document.getElementById("namelistdiv").innerHTML += "<li>"+imiona[i] + "</li>";
             }
-            document.getElementById("namelistdiv").innerHTML += "</ol>";
+            document.getElementById("namelistdiv").innerHTML += "</ul>";
             drawZad();
         }
         function clearNameList(){
